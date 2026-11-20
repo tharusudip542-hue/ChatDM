@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1e1f22"><title>ChatDM</title>
+<style>
+:root{--bg:#1e1f22;--panel:#2b2d31;--panel2:#232428;--line:#3b3d44;--text:#f2f3f5;--muted:#aeb2b9;--purple:#8b5cf6;--green:#23a559}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px system-ui,-apple-system,Segoe UI,sans-serif;height:100vh;overflow:hidden}
+button,input{font:inherit}button{cursor:pointer;border:0;color:inherit}.app{height:100vh;display:flex}
+.servers{width:72px;background:#17181b;display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:9px;flex-shrink:0}
+.server{width:48px;height:48px;border-radius:17px;background:#303238;display:grid;place-items:center;font-weight:800;font-size:17px;position:relative;transition:.15s}
+.server:hover,.server.active{border-radius:15px;background:var(--purple)}.server.active:before{content:"";position:absolute;left:-12px;height:30px;width:4px;border-radius:0 4px 4px 0;background:white}
+.server.add{color:#35c46a;font-size:25px}.sep{height:1px;width:32px;background:#3b3d44}
+.sidebar{width:245px;background:var(--panel);display:flex;flex-direction:column;flex-shrink:0}
+.server-head{height:52px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;font-weight:750;border-bottom:1px solid #202126;box-shadow:0 1px 2px #0003}
+.section{padding:18px 10px 5px;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.5px;display:flex;justify-content:space-between}
+.channel{margin:2px 8px;padding:8px 10px;border-radius:5px;color:var(--muted);display:flex;gap:8px;align-items:center;cursor:pointer}
+.channel:hover,.channel.active{background:#3a3c43;color:white}.channel b{font-size:17px;color:#92969e}
+.side-bottom{margin-top:auto;background:#232428;padding:10px;display:flex;align-items:center;gap:9px}
+.avatar{width:34px;height:34px;border-radius:50%;background:#7252bd;display:grid;place-items:center;font-weight:800;flex-shrink:0;position:relative}
+.online:after{content:"";position:absolute;width:10px;height:10px;border-radius:50%;background:#23a559;border:3px solid #232428;right:-1px;bottom:-1px}
+.userinfo{min-width:0;flex:1}.userinfo strong{display:block;font-size:13px}.userinfo small{color:var(--muted)}
+.main{flex:1;display:flex;min-width:0;flex-direction:column}.topbar{height:52px;display:flex;align-items:center;padding:0 18px;border-bottom:1px solid #17181b;gap:10px;box-shadow:0 1px 2px #0003}
+.topbar .hash{font-size:22px;color:#92969e}.topbar strong{font-size:14px}.top-actions{margin-left:auto;display:flex;gap:14px;color:var(--muted);font-size:18px}
+.chat{flex:1;overflow:auto;padding:20px max(20px,4vw) 18px}.welcome{margin:24px 0 28px}.welcome .big-hash{width:62px;height:62px;border-radius:50%;background:#41434b;display:grid;place-items:center;font-size:34px;margin-bottom:14px}.welcome h2{margin:0 0 5px;font-size:28px}.welcome p{margin:0;color:var(--muted)}
+.message{display:flex;gap:12px;margin:18px 0}.message .avatar{width:40px;height:40px}.msgbody{min-width:0}.msghead{display:flex;align-items:baseline;gap:8px}.msghead strong{font-size:14px}.time{font-size:11px;color:#8e929a}.msgtext{margin-top:4px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}.composer-wrap{padding:0 22px 22px}.composer{display:flex;align-items:center;background:#383a40;border-radius:9px;padding:5px 12px;gap:10px}.composer input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:white;padding:10px 0}.composer button{background:transparent;color:#b8bbc2;font-size:21px}.send{background:var(--purple)!important;color:white!important;border-radius:7px;padding:7px 12px!important;font-size:13px!important}
+.members{width:210px;background:var(--panel2);padding:18px 10px;overflow:auto;flex-shrink:0}.member-title{font-size:11px;color:var(--muted);font-weight:800;margin:10px 8px}.member{display:flex;align-items:center;gap:9px;padding:7px 8px;color:#c6c8ce}.member .avatar{width:30px;height:30px;font-size:11px}.mobile-menu{display:none;background:transparent;font-size:20px}
+.modal-back{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:18px;z-index:10}.modal{width:min(420px,100%);background:#313338;border-radius:12px;padding:22px;box-shadow:0 15px 60px #0008}.modal h2{margin:0 0 8px}.modal p{color:var(--muted);line-height:1.5}.modal input{width:100%;padding:12px;border-radius:6px;border:1px solid #1d1e22;background:#1e1f22;color:white;margin:8px 0 14px;outline:none}.modal-actions{display:flex;justify-content:flex-end;gap:8px}.primary{background:var(--purple);padding:10px 16px;border-radius:6px;font-weight:650}.secondary{background:#45474f;padding:10px 16px;border-radius:6px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#111;color:white;padding:10px 16px;border-radius:8px;display:none;z-index:20}
+@media(max-width:850px){.members{display:none}.sidebar{width:220px}}
+@media(max-width:600px){.servers{width:58px;padding-top:9px}.server{width:42px;height:42px}.sidebar{display:none;position:absolute;left:58px;top:0;bottom:0;z-index:5;width:min(270px,calc(100vw - 58px));box-shadow:10px 0 30px #0007}.sidebar.open{display:flex}.mobile-menu{display:block}.topbar{padding:0 12px}.chat{padding:14px 14px}.composer-wrap{padding:0 10px 12px}.welcome h2{font-size:24px}.top-actions{gap:10px}}
+</style></head>
+<body>
+<div class="app">
+ <aside class="servers" id="servers">
+  <button class="server active" title="ChatDM Home" onclick="toast('ChatDM Home')">C</button><div class="sep"></div>
+  <button class="server" title="Gaming Hub" onclick="switchServer('Gaming Hub','G')">🎮</button>
+  <button class="server" title="Study Group" onclick="switchServer('Study Group','S')">📚</button>
+  <button class="server add" title="Create server" onclick="openModal('server')">＋</button>
+  <button class="server" title="Explore" onclick="toast('Explore servers coming soon')">⌕</button>
+ </aside>
+ <aside class="sidebar" id="sidebar">
+  <div class="server-head"><span id="serverName">ChatDM Home</span><button onclick="openModal('invite')">⌄</button></div>
+  <div class="section">TEXT CHANNELS <button onclick="openModal('channel')">＋</button></div>
+  <div id="channels">
+   <div class="channel active" onclick="selectChannel(this,'general')"><b>#</b> general</div>
+   <div class="channel" onclick="selectChannel(this,'introductions')"><b>#</b> introductions</div>
+   <div class="channel" onclick="selectChannel(this,'media')"><b>#</b> media</div>
+  </div>
+  <div class="section">VOICE CHANNELS <button onclick="toast('Voice channels need a live voice backend')">＋</button></div>
+  <div class="channel" onclick="toast('Voice chat requires server setup')"><b>◖</b> Lounge</div>
+  <div class="side-bottom"><div class="avatar online">S</div><div class="userinfo"><strong>Sudip</strong><small>Online</small></div><button title="Settings" onclick="openModal('profile')">⚙</button></div>
+ </aside>
+ <main class="main">
+  <header class="topbar"><button class="mobile-menu" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button><span class="hash">#</span><strong id="channelTitle">general</strong><div class="top-actions"><span title="Threads">▤</span><span title="Notifications">♧</span><span title="Pinned messages">♢</span><span title="Search" onclick="toast('Search UI demo')">⌕</span></div></header>
+  <section class="chat" id="chat">
+   <div class="welcome"><div class="big-hash">#</div><h2>Welcome to #general!</h2><p>This is the beginning of the <b>general</b> channel.</p></div>
+   <div id="messages">
+    <div class="message"><div class="avatar">A</div><div class="msgbody"><div class="msghead"><strong>Alex</strong><span class="time">Today at 9:41 AM</span></div><div class="msgtext">Welcome to ChatDM! 🎉 This is your space to chat, share and build a community.</div></div></div>
+    <div class="message"><div class="avatar" style="background:#2f8c78">M</div><div class="msgbody"><div class="msghead"><strong>Maya</strong><span class="time">Today at 9:43 AM</span></div><div class="msgtext">The layout is ready for you to try. Send a message below!</div></div></div>
+   </div>
+  </section>
+  <div class="composer-wrap"><div class="composer"><button onclick="toast('Attachment upload needs storage setup')">＋</button><input id="messageInput" placeholder="Message #general" onkeydown="if(event.key==='Enter')sendMessage()"><button onclick="toast('Emoji picker coming soon')">☺</button><button class="send" onclick="sendMessage()">Send</button></div></div>
+ </main>
+ <aside class="members"><div class="member-title">ONLINE — 3</div><div class="member"><div class="avatar online">S</div>Sudip <small style="color:#8e929a">You</small></div><div class="member"><div class="avatar online">A</div>Alex</div><div class="member"><div class="avatar online" style="background:#2f8c78">M</div>Maya</div><div class="member-title">OFFLINE — 1</div><div class="member"><div class="avatar" style="background:#777">J</div>Jordan</div></aside>
+</div>
+<div class="modal-back" id="modalBack" onclick="if(event.target===this)closeModal()"><div class="modal"><h2 id="modalTitle">Create server</h2><p id="modalDesc">Give your new community a name.</p><input id="modalInput" placeholder="Enter a name"><div class="modal-actions"><button class="secondary" onclick="closeModal()">Cancel</button><button class="primary" onclick="submitModal()">Create</button></div></div></div>
+<div class="toast" id="toast"></div>
+<script>
+let modalType='server', currentServer='ChatDM Home';
+function toast(msg){let t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.style.display='none',2300)}
+function openModal(type){modalType=type;let titles={server:'Create a server',channel:'Create a channel',invite:'Server options',profile:'Your profile'};let desc={server:'Give your new community a name.',channel:'Choose a name for your text channel.',invite:'Invite links and server settings can be connected later.',profile:'Profile settings are a demo in this prototype.'};document.getElementById('modalTitle').textContent=titles[type];document.getElementById('modalDesc').textContent=desc[type];let inp=document.getElementById('modalInput');inp.value='';inp.placeholder=type==='server'?'My new server':type==='channel'?'new-channel':'Optional';inp.style.display=(type==='invite'||type==='profile')?'none':'block';document.querySelector('.modal .primary').textContent=type==='server'||type==='channel'?'Create':'OK';document.getElementById('modalBack').style.display='flex';}
+function closeModal(){document.getElementById('modalBack').style.display='none'}
+function submitModal(){let val=document.getElementById('modalInput').value.trim();if(modalType==='server'&&val){switchServer(val,val[0].toUpperCase());toast('Server created in this local demo')}else if(modalType==='channel'&&val){let el=document.createElement('div');el.className='channel';el.innerHTML='<b>#</b> '+val.replace(/[<>&"]/g,'');el.onclick=function(){selectChannel(el,val)};document.getElementById('channels').appendChild(el);toast('Channel created in this local demo')}closeModal()}
+function switchServer(name,letter){currentServer=name;document.getElementById('serverName').textContent=name;document.querySelectorAll('.server').forEach(x=>x.classList.remove('active'));event?.currentTarget?.classList.add('active');toast('Switched to '+name)}
+function selectChannel(el,name){document.querySelectorAll('#channels .channel').forEach(x=>x.classList.remove('active'));el.classList.add('active');document.getElementById('channelTitle').textContent=name;document.querySelector('.composer input').placeholder='Message #'+name;document.querySelector('.welcome h2').textContent='Welcome to #'+name+'!';document.querySelector('.welcome p').innerHTML='This is the beginning of the <b>'+name+'</b> channel.';document.getElementById('messages').innerHTML='';document.getElementById('sidebar').classList.remove('open')}
+function sendMessage(){let input=document.getElementById('messageInput'),v=input.value.trim();if(!v)return;let row=document.createElement('div');row.className='message';let av=document.createElement('div');av.className='avatar';av.textContent='S';let body=document.createElement('div');body.className='msgbody';let head=document.createElement('div');head.className='msghead';let strong=document.createElement('strong');strong.textContent='Sudip';let time=document.createElement('span');time.className='time';time.textContent='Just now';head.append(strong,time);let txt=document.createElement('div');txt.className='msgtext';txt.textContent=v;body.append(head,txt);row.append(av,body);document.getElementById('messages').append(row);input.value='';document.getElementById('chat').scrollTop=document.getElementById('chat').scrollHeight}
+</script></body></html>
